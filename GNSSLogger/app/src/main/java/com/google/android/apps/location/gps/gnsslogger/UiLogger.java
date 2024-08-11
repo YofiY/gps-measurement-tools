@@ -241,12 +241,15 @@ public class UiLogger implements MeasurementListener {
 
   @Override
   public void onGnssNavigationMessageReceived(GnssNavigationMessage event) {
-    logNavigationMessageEvent("onGnssNavigationMessageReceived: " + event);
+    if (event.getType() == GnssNavigationMessage.TYPE_GAL_F || event.getType() == GnssNavigationMessage.TYPE_GAL_I) {
+      logNavigationMessageEvent("onGnssNavigationMessageReceived: " + event.toString());
+    }
   }
 
   @Override
   public void onGnssNavigationMessageStatusChanged(int status) {
-    logNavigationMessageEvent("onStatusChanged: " + getGnssNavigationMessageStatus(status));
+      logNavigationMessageEvent("onStatusChanged: " + getGnssNavigationMessageStatus(status));
+
   }
 
   @Override

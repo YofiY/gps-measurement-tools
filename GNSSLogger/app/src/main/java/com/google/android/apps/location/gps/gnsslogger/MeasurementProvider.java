@@ -149,6 +149,7 @@ public class MeasurementProvider {
           if (mLogMeasurements) {
             for (MeasurementListener logger : mListeners) {
               logger.onGnssMeasurementsReceived(event);
+
             }
           }
         }

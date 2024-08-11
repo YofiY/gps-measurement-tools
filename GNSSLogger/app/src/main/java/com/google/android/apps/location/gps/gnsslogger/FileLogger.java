@@ -83,8 +83,10 @@ public class FileLogger implements MeasurementListener {
       File baseDirectory;
       String state = Environment.getExternalStorageState();
       if (Environment.MEDIA_MOUNTED.equals(state)) {
-        baseDirectory = new File(Environment.getExternalStorageDirectory(), FILE_PREFIX);
-        baseDirectory.mkdirs();
+        //baseDirectory = mContext.getExternalFilesDir(null);
+        baseDirectory = new File("/storage/emulated/0/Download/");
+        //create a file in the download directory
+        //baseDirectory.mkdirs();
       } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
         logError("Cannot write to external storage.");
         return;
@@ -100,7 +102,7 @@ public class FileLogger implements MeasurementListener {
       String currentFilePath = currentFile.getAbsolutePath();
       BufferedWriter currentFileWriter;
       try {
-        currentFileWriter = new BufferedWriter(new FileWriter(currentFile));
+          currentFileWriter = new BufferedWriter(new FileWriter(currentFile));
       } catch (IOException e) {
         logException("Could not open file: " + currentFilePath, e);
         return;
@@ -174,23 +176,8 @@ public class FileLogger implements MeasurementListener {
 
       mFile = currentFile;
       mFileWriter = currentFileWriter;
+      Log.d(TAG, "File opened: " + currentFilePath);
       Toast.makeText(mContext, "File opened: " + currentFilePath, Toast.LENGTH_SHORT).show();
-
-      // To make sure that files do not fill up the external storage:
-      // - Remove all empty files
-      FileFilter filter = new FileToDeleteFilter(mFile);
-      for (File existingFile : baseDirectory.listFiles(filter)) {
-        existingFile.delete();
-      }
-      // - Trim the number of files with data
-      File[] existingFiles = baseDirectory.listFiles();
-      int filesToDeleteCount = existingFiles.length - MAX_FILES_STORED;
-      if (filesToDeleteCount > 0) {
-        Arrays.sort(existingFiles);
-        for (int i = 0; i < filesToDeleteCount; ++i) {
-          existingFiles[i].delete();
-        }
-      }
     }
   }
 
@@ -202,17 +189,18 @@ public class FileLogger implements MeasurementListener {
     if (mFile == null) {
       return;
     }
-
-    Intent emailIntent = new Intent(Intent.ACTION_SEND);
-    emailIntent.setType("*/*");
-    emailIntent.putExtra(Intent.EXTRA_SUBJECT, "SensorLog");
-    emailIntent.putExtra(Intent.EXTRA_TEXT, "");
-    // attach the file
-    Uri fileURI =
-        FileProvider.getUriForFile(mContext, BuildConfig.APPLICATION_ID + ".provider", mFile);
-    emailIntent.putExtra(Intent.EXTRA_STREAM, fileURI);
-    getUiComponent().startActivity(Intent.createChooser(emailIntent, "Send log.."));
+    Log.d(TAG, "TRYING TO SEEEEEEEEEND");
+//    Intent emailIntent = new Intent(Intent.ACTION_SEND);
+//    emailIntent.setType("*/*");
+//    emailIntent.putExtra(Intent.EXTRA_SUBJECT, "SensorLog");
+//    emailIntent.putExtra(Intent.EXTRA_TEXT, "");
+//    // attach the file
+//    Uri fileURI =
+//        FileProvider.getUriForFile(mContext, BuildConfig.APPLICATION_ID + ".provider", mFile);
+//    emailIntent.putExtra(Intent.EXTRA_STREAM, fileURI);
+//    getUiComponent().startActivity(Intent.createChooser(emailIntent, "Send log.."));
     if (mFileWriter != null) {
+      Log.d(TAG, "Closing file");
       try {
         mFileWriter.flush();
         mFileWriter.close();
@@ -263,8 +251,10 @@ public class FileLogger implements MeasurementListener {
   public void onGnssMeasurementsReceived(GnssMeasurementsEvent event) {
     synchronized (mFileLock) {
       if (mFileWriter == null) {
+        logException("FileWriter not working", null);
         return;
       }
+      Log.d("FileLogger", "Writing to file");
       GnssClock gnssClock = event.getClock();
       for (GnssMeasurement measurement : event.getMeasurements()) {
         try {
